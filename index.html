@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <title>Anki IA - Professor Eterno v2.3</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    button { cursor: pointer; border: none; font-family: inherit; }
+    input, textarea { font-family: inherit; }
+
+    /* HEADER */
+    .header {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: #4f46e5; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+    }
+    .brand-title { font-weight: 700; font-size: 15px; }
+    .brand-sub { font-size: 11px; color: #34d399; font-weight: 600; display: block; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-alarm {
+      background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4);
+      color: #fcd34d; padding: 6px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .btn-settings {
+      background: #334155; color: #f8fafc; width: 36px; height: 36px;
+      border-radius: 10px; font-size: 18px; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* MAIN */
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .tab-section { display: none; flex: 1; flex-direction: column; height: 100%; }
+    .tab-section.active { display: flex; }
+    .pad-area { padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; flex: 1; }
+
+    /* CARDS */
+    .card-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    /* TELA DE DASHBOARD INICIAL (HOME) */
+    .hero-card {
+      background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+      border: 1px solid #4338ca;
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .menu-card-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .menu-card-btn:active { transform: scale(0.97); background: #334155; }
+    .menu-icon { font-size: 24px; }
+    .menu-label { font-size: 14px; font-weight: 700; color: #fff; }
+    .menu-desc { font-size: 11px; color: #94a3b8; }
+
+    /* SALA DE AULA (CHAT) */
+    .quick-bar {
+      display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px;
+      background: #0f172a; border-bottom: 1px solid #1e293b; flex-shrink: 0;
+    }
+    .quick-btn {
+      background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .quick-btn.primary { background: rgba(79,70,229,0.25); border-color: #6366f1; color: #c7d2fe; }
+    .chat-list {
+      flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .msg-row { display: flex; width: 100%; }
+    .msg-row.user { justify-content: flex-end; }
+    .msg-row.model { justify-content: flex-start; }
+    .msg-bubble {
+      max-width: 86%; padding: 11px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.5;
+      word-wrap: break-word;
+    }
+    .msg-row.user .msg-bubble { background: #4f46e5; color: #ffffff; border-bottom-right-radius: 4px; }
+    .msg-row.model .msg-bubble { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; border-bottom-left-radius: 4px; }
+    .chat-input-bar {
+      padding: 10px 12px; background: #1e293b; border-top: 1px solid #334155;
+      display: flex; gap: 8px; flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1; background: #0f172a; border: 1px solid #334155; color: #fff;
+      padding: 11px 14px; border-radius: 12px; font-size: 14px; outline: none;
+    }
+    .chat-input:focus { border-color: #6366f1; }
+    .btn-send {
+      background: #4f46e5; color: #fff; padding: 0 18px; border-radius: 12px;
+      font-weight: 700; font-size: 14px;
+    }
+
+    /* ANKI PLAYER */
+    .anki-counts {
+      display: flex; justify-content: space-around; align-items: center; text-align: center;
+    }
+    .count-num { font-size: 18px; font-weight: 800; margin-top: 2px; }
+    .anki-flashcard {
+      min-height: 290px; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .anki-word { font-size: 26px; font-weight: 800; color: #fff; text-align: center; margin: 12px 0; }
+    .anki-context {
+      background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 12px;
+      font-size: 13px; color: #cbd5e1; text-align: center; font-style: italic;
+    }
+    .anki-divider { border: none; border-top: 1px solid #334155; margin: 16px 0; }
+    .anki-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
+    .btn-reveal {
+      width: 100%; background: #4f46e5; color: #fff; padding: 15px; border-radius: 14px;
+      font-size: 15px; font-weight: 700; box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+    }
+    .grade-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .btn-grade {
+      padding: 10px 4px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-weight: 700; font-size: 12px; border: 1px solid transparent;
+    }
+    .btn-grade span { font-size: 10px; font-weight: 500; opacity: 0.85; }
+    .g-again { background: rgba(244,63,94,0.18); border-color: rgba(244,63,94,0.45); color: #fda4af; }
+    .g-hard { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.45); color: #fcd34d; }
+    .g-good { background: rgba(16,185,129,0.18); border-color: rgba(16,185,129,0.45); color: #6ee7b7; }
+    .g-easy { background: rgba(14,165,233,0.18); border-color: rgba(14,165,233,0.45); color: #7dd3fc; }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      background: #1e293b; border-top: 1px solid #334155;
+      display: flex; justify-content: space-around; padding: 8px 0; flex-shrink: 0;
+    }
+    .nav-btn {
+      background: transparent; color: #94a3b8; display: flex; flex-direction: column;
+      align-items: center; gap: 3px; font-size: 11px; font-weight: 600; position: relative; padding: 4px 12px;
+    }
+    .nav-btn.active { color: #818cf8; }
+    .nav-icon { font-size: 18px; }
+    .badge-due {
+      position: absolute; top: 0; right: 6px; background: #ef4444; color: #fff;
+      font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 10px;
+    }
+
+    /* MODALS */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+      z-index: 100; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: #1e293b; border: 1px solid #475569; width: 100%; max-width: 380px;
+      border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .form-input {
+      width: 100%; background: #0f172a; border: 1px solid #334155; color: #fff;
+      padding: 10px 12px; border-radius: 10px; font-size: 13px;
+    }
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .bar-bg { width: 100%; height: 8px; background: #0f172a; border-radius: 8px; overflow: hidden; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon">🇬🇧</div>
+      <div>
+        <div class="brand-title">Professor Eterno</div>
+        <span id="header-level" class="brand-sub">Nível: Em Avaliação • Aula 0</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-alarm" onclick="window.abrirConfig()" id="alarm-badge">🔔 23:00</button>
+      <button type="button" class="btn-settings" onclick="window.abrirConfig()" title="Configurações">⚙️</button>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="main">
+
+    <!-- ABA 0: HOME / DASHBOARD DIDÁTICO -->
+    <section id="tab-dashboard" class="tab-section active">
+      <div class="pad-area">
+        <!-- Hero Resumo -->
+        <div class="hero-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <span style="font-size:11px;color:#c7d2fe;font-weight:600;text-transform:uppercase;">Painel de Estudos</span>
+              <div id="hero-status-text" style="font-size:18px;font-weight:800;margin-top:2px;">Pronto para evoluir hoje?</div>
+            </div>
+            <div style="font-size:32px;">🔥</div>
+          </div>
+          <div class="kpi-grid" style="margin-top:4px;">
+            <div style="background:rgba(255,255,255,0.06);padding:10px;border-radius:12px;">
+              <div style="font-size:10px;color:#cbd5e1;">Aulas Concluídas</div>
+              <div id="metric-lessons" style="font-size:20px;font-weight:800;margin-top:2px;">0</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06);padding:10px;border-radius:12px;">
+              <div style="font-size:10px;color:#cbd5e1;">Retenção Anki</div>
+              <div id="metric-retention" style="font-size:20px;font-weight:800;margin-top:2px;color:#34d399;">100%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MENU RÁPIDO COM OS 4 BOTÕES SOLICITADOS -->
+        <div>
+          <h2 style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;letter-spacing:0.05em;">Acesso Rápido</h2>
+          <div class="menu-grid">
+            <button type="button" class="menu-card-btn" onclick="window.mudarAba('classroom')">
+              <span class="menu-icon">👨‍🏫</span>
+              <div>
+                <div class="menu-label">Sala de Aula</div>
+                <div class="menu-desc">Estudar com o Professor IA</div>
+              </div>
+            </button>
+            <button type="button" class="menu-card-btn" onclick="window.mudarAba('anki-play')">
+              <span class="menu-icon">⚡</span>
+              <div>
+                <div class="menu-label">Usar Anki</div>
+                <div class="menu-desc">Revisão espaçada (SM-2)</div>
+              </div>
+            </button>
+            <button type="button" class="menu-card-btn" onclick="window.mudarAba('words')">
+              <span class="menu-icon">🗂️</span>
+              <div>
+                <div class="menu-label">Baralho</div>
+                <div class="menu-desc">Ver e gerenciar cartões</div>
+              </div>
+            </button>
+            <button type="button" class="menu-card-btn" onclick="window.mudarAba('metrics-detail')">
+              <span class="menu-icon">📊</span>
+              <div>
+                <div class="menu-label">Métricas</div>
+                <div class="menu-desc">Estágios de memória</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Estágios de Memória Resumo -->
+        <div class="card-box" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Progresso do Vocabulário</div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;">
+              <span>1. Aprendendo / Reconhecimento</span>
+              <b id="lvl-rec-count" style="color:#60a5fa;">0</b>
+            </div>
+            <div class="bar-bg"><div id="lvl-rec-bar" style="height:100%;background:#3b82f6;width:0%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;">
+              <span>2. Recuperação Ativa</span>
+              <b id="lvl-ret-count" style="color:#fbbf24;">0</b>
+            </div>
+            <div class="bar-bg"><div id="lvl-ret-bar" style="height:100%;background:#f59e0b;width:0%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;">
+              <span>3. Uso Ativo (Dominado)</span>
+              <b id="lvl-act-count" style="color:#34d399;">0</b>
+            </div>
+            <div class="bar-bg"><div id="lvl-act-bar" style="height:100%;background:#10b981;width:0%;"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 1: SALA DE AULA -->
+    <section id="tab-classroom" class="tab-section">
+      <div class="quick-bar">
+        <button type="button" class="quick-btn primary" onclick="window.comandoRapido('COMEÇAR AULA')">▶ COMEÇAR AULA</button>
+        <button type="button" class="quick-btn" onclick="window.comandoRapido('CONTINUAR')">⏭ CONTINUAR</button>
+        <button type="button" class="quick-btn" onclick="window.comandoRapido('REVISÃO')">🔄 REVISÃO</button>
+        <button type="button" class="quick-btn" onclick="window.comandoRapido('REVISÃO DAS DIFÍCEIS')">🔥 DIFÍCEIS</button>
+        <button type="button" class="quick-btn" onclick="window.comandoRapido('TESTE')">📝 TESTE</button>
+        <button type="button" class="quick-btn" onclick="window.comandoRapido('ENCERRAR AULA')">✅ ENCERRAR AULA</button>
+      </div>
+
+      <div id="chat-messages" class="chat-list"></div>
+
+      <div class="chat-input-bar">
+        <input id="chat-input" class="chat-input" type="text" placeholder="Digite sua resposta aqui..." onkeydown="if(event.key==='Enter') window.enviarMensagem()">
+        <button type="button" id="send-btn" class="btn-send" onclick="window.enviarMensagem()">Enviar</button>
+      </div>
+    </section>
+
+    <!-- ABA 2: USAR ANKI (MODO ANKI OFICIAL) -->
+    <section id="tab-anki-play" class="tab-section">
+      <div class="pad-area">
+        <div class="card-box anki-counts">
+          <div>
+            <div style="font-size:11px;color:#94a3b8;">Novos</div>
+            <div id="anki-count-new" class="count-num" style="color:#60a5fa;">0</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#94a3b8;">Aprendendo</div>
+            <div id="anki-count-learn" class="count-num" style="color:#fb7185;">0</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#94a3b8;">A Revisar</div>
+            <div id="anki-count-rev" class="count-num" style="color:#34d399;">0</div>
+          </div>
+          <button type="button" onclick="window.iniciarAnki(true)" style="background:#334155;color:#fff;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:700;">
+            ⚡ Treinar Todos
+          </button>
+        </div>
+
+        <div id="anki-play-area" class="card-box anki-flashcard"></div>
+        <div id="anki-controls-area"></div>
+      </div>
+    </section>
+
+    <!-- ABA 3: BARALHO SALVO -->
+    <section id="tab-words" class="tab-section">
+      <div class="pad-area">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="font-size:15px;font-weight:700;">Meu Baralho Anki</h2>
+            <p style="font-size:11px;color:#94a3b8;">Cartões salvos prontos para prática</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" onclick="window.mudarAba('anki-play')" style="background:#10b981;color:#fff;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;">
+              ▶ Usar Anki
+            </button>
+            <button type="button" onclick="window.abrirModalCard()" style="background:#4f46e5;color:#fff;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;">
+              + Card
+            </button>
+          </div>
+        </div>
+
+        <div id="word-list-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </section>
+
+    <!-- ABA 4: MÉTRICAS DETALHADAS -->
+    <section id="tab-metrics-detail" class="tab-section">
+      <div class="pad-area">
+        <div class="kpi-grid">
+          <div class="card-box">
+            <div style="font-size:11px;color:#94a3b8;">Aulas Concluídas</div>
+            <div id="metric-lessons-2" style="font-size:24px;font-weight:800;margin-top:4px;">0</div>
+            <div id="metric-streak-2" style="font-size:11px;color:#fbbf24;margin-top:4px;">Ofensiva: 1 dia 🔥</div>
+          </div>
+          <div class="card-box">
+            <div style="font-size:11px;color:#94a3b8;">Total no Baralho</div>
+            <div id="metric-total-words" style="font-size:24px;font-weight:800;margin-top:4px;color:#34d399;">3 cards</div>
+            <div style="font-size:11px;color:#cbd5e1;margin-top:4px;">Ativo no Anki</div>
+          </div>
+        </div>
+
+        <div class="card-box" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Backup de Progresso</span>
+            <div style="display:flex;gap:10px;">
+              <button type="button" onclick="window.exportarBackup()" style="background:none;color:#818cf8;font-size:12px;font-weight:700;">Exportar</button>
+              <button type="button" onclick="window.importarBackup()" style="background:none;color:#34d399;font-size:12px;font-weight:700;">Importar</button>
+            </div>
+          </div>
+          <textarea id="continuity-input" class="form-input" rows="3" placeholder="Clique em Exportar para gerar seu bloco ou cole aqui para restaurar..."></textarea>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NAVEGAÇÃO INFERIOR -->
+  <nav class="bottom-nav">
+    <button type="button" id="nav-dashboard" class="nav-btn active" onclick="window.mudarAba('dashboard')">
+      <span class="nav-icon">📊</span>
+      <span>Início</span>
+    </button>
+    <button type="button" id="nav-classroom" class="nav-btn" onclick="window.mudarAba('classroom')">
+      <span class="nav-icon">👨‍🏫</span>
+      <span>Sala de Aula</span>
+    </button>
+    <button type="button" id="nav-anki-play" class="nav-btn" onclick="window.mudarAba('anki-play')">
+      <span class="nav-icon">⚡</span>
+      <span>Usar Anki</span>
+      <span id="nav-due-badge" class="badge-due">3</span>
+    </button>
+    <button type="button" id="nav-words" class="nav-btn" onclick="window.mudarAba('words')">
+      <span class="nav-icon">🗂️</span>
+      <span>Baralho</span>
+    </button>
+  </nav>
+
+  <!-- MODAL DE CONFIGURAÇÕES -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-size:16px;font-weight:700;">⚙️ Configurações do App</h3>
+        <button type="button" onclick="window.fecharConfig()" style="background:none;color:#94a3b8;font-size:18px;">✖</button>
+      </div>
+      <div>
+        <label style="font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px;">Chave da API do Gemini:</label>
+        <input id="api-key-input" class="form-input" type="text" value="AQ.Ab8RN6IIuOuSmkAzD16ndCemzCMTw0BFPf6kgrnWdFmKs-EFLQ">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px;">Horário do Despertador Diário:</label>
+        <input id="alarm-time-input" class="form-input" type="time" value="23:00">
+      </div>
+      <button type="button" onclick="window.salvarConfig()" style="background:#4f46e5;color:#fff;padding:12px;border-radius:12px;font-weight:700;font-size:14px;">
+        Salvar Configurações
+      </button>
+      <button type="button" onclick="window.resetarApp()" style="background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.4);color:#fda4af;padding:10px;border-radius:12px;font-weight:600;font-size:12px;">
+        🔄 Resetar Cache do App
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL NOVO CARTÃO ANKI -->
+  <div id="new-card-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-size:16px;font-weight:700;">➕ Novo Cartão Anki</h3>
+        <button type="button" onclick="window.fecharModalCard()" style="background:none;color:#94a3b8;font-size:18px;">✖</button>
+      </div>
+      <input id="nc-word" class="form-input" type="text" placeholder="Palavra ou Expressão em Inglês (Frente)">
+      <input id="nc-context" class="form-input" type="text" placeholder="Frase com lacuna ou pergunta desafio">
+      <input id="nc-trans" class="form-input" type="text" placeholder="Significado em Português (Verso)">
+      <input id="nc-pron" class="form-input" type="text" placeholder="Pronúncia (ex: /poust-PÔUN/)">
+      <input id="nc-ex" class="form-input" type="text" placeholder="Frase de exemplo em inglês + tradução">
+      <button type="button" onclick="window.salvarNovoCard()" style="background:#10b981;color:#fff;padding:12px;border-radius:12px;font-weight:700;font-size:14px;">
+        Salvar no Baralho
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var CHAVE_PADRAO_USUARIO = "AQ.Ab8RN6IIuOuSmkAzD16ndCemzCMTw0BFPf6kgrnWdFmKs-EFLQ";
+      var DAY_MS = 86400000;
+
+      var defaultCards = [
+        {
+          id: "c1",
+          w: "Postpone",
+          context: "We need to ___ the meeting until Friday.",
+          t: "Adiar, postergar (deixar para depois)",
+          pron: "/poʊstˈpoʊn/ (poust-PÔUN)",
+          ex: "They decided to postpone the trip due to the rain. (Eles decidiram adiar a viagem devido à chuva.)",
+          lvl: 1, reps: 0, interval: 0, ease: 2.5, dueDate: Date.now(), state: "new", next: "Agora"
+        },
+        {
+          id: "c2",
+          w: "Figure out",
+          context: "The manager couldn't ___ the budget issue.",
+          t: "Descobrir, entender, resolver (encontrar uma solução pensando)",
+          pron: "/ˈfɪɡ.jər aʊt/ (FÍ-guer áut)",
+          ex: "I need to figure out how this software works. (Preciso descobrir como este programa funciona.)",
+          lvl: 1, reps: 0, interval: 0, ease: 2.5, dueDate: Date.now(), state: "new", next: "Agora"
+        },
+        {
+          id: "c3",
+          w: "Deadline",
+          context: "We have a strict ___ to deliver this project.",
+          t: "Prazo final, data limite",
+          pron: "/ˈded.laɪn/ (DÉD-lain)",
+          ex: "Tomorrow is the deadline for the report. (Amanhã é o prazo final para o relatório.)",
+          lvl: 1, reps: 0, interval: 0, ease: 2.5, dueDate: Date.now(), state: "new", next: "Agora"
+        }
+      ];
+
+      var defaultState = {
+        aula: 0,
+        nivel: "Em Avaliação",
+        streak: 1,
+        retencao: 100,
+        reviewsDone: 0,
+        reviewsCorrect: 0,
+        alarmTime: "23:00",
+        apiKey: CHAVE_PADRAO_USUARIO,
+        words: defaultCards,
+        chatHistory: [
+          {
+            role: "model",
+            text: "Olá! Eu sou o seu **Professor Eterno de Vocabulário de Inglês**.\n\nVamos iniciar a nossa jornada. Para começarmos, responda à primeira pergunta da nossa **Avaliação Inicial de Nivelamento**:\n\n*\"We need to **postpone** the meeting because the manager couldn't **figure out** the budget issue.\"*\n\nSem pesquisar: O que significam **postpone** e **figure out**?"
+          }
+        ]
+      };
+
+      var appState;
+      try {
+        var saved = localStorage.getItem("anki_ia_v23_state");
+        appState = saved ? JSON.parse(saved) : defaultState;
+        if (!appState.apiKey) appState.apiKey = CHAVE_PADRAO_USUARIO;
+        if (!appState.words || !Array.isArray(appState.words)) appState.words = defaultCards;
+        if (!appState.chatHistory || !Array.isArray(appState.chatHistory)) appState.chatHistory = defaultState.chatHistory;
+      } catch (e) {
+        appState = defaultState;
+      }
+
+      var SYSTEM_PROMPT = [
+        "Voce e o PROFESSOR ETERNO DE VOCABULARIO DE INGLES (Metodo Anki com IA).",
+        "O aluno estuda exclusivamente dentro deste aplicativo.",
+        "Regras obrigatorias:",
+        "1. Apresente apenas UMA pergunta ou UM flashcard por vez e aguarde a resposta do aluno. Nunca revele a resposta antes da tentativa.",
+        "2. Se o nivel for 'Em Avaliacao', faca as 3 perguntas de nivelamento (uma por vez) e depois inicie a AULA 1.",
+        "3. Siga sempre as 3 fases da aula: Fase 1 (Retomada/Aquecimento), Fase 2 (5 a 10 palavras novas com Frente e Verso IPA + pronuncia aproximada BR + exemplo traduzido + exercicios ativos), Fase 3 (Teste final + Relatorio + Bloco de Continuidade).",
+        "4. Sempre que ensinar o verso de uma palavra nova ou concluir uma aula, adicione no final da resposta uma linha com a tag ANKI_DATA: seguida de um JSON puro na mesma linha, exemplo:",
+        'ANKI_DATA: {"aula":1,"nivel":"B1","words":[{"w":"postpone","context":"We need to ___ the meeting.","t":"adiar","pron":"/poust-POUN/","ex":"Lets postpone it.","lvl":1}]}'
+      ].join("\n");
+
+      function salvarEstado() {
+        try {
+          localStorage.setItem("anki_ia_v23_state", JSON.stringify(appState));
+        } catch (e) {}
+        atualizarTopo();
+        renderizarBaralho();
+        renderizarMetricas();
+      }
+
+      function atualizarTopo() {
+        document.getElementById("header-level").innerText = "Nível: " + appState.nivel + " • Aula " + appState.aula;
+        document.getElementById("alarm-badge").innerText = "🔔 " + (appState.alarmTime || "23:00");
+        var pendentes = obterCartoesPendentes(false).length;
+        var badge = document.getElementById("nav-due-badge");
+        if (pendentes > 0) {
+          badge.innerText = pendentes;
+          badge.style.display = "inline-block";
+        } else {
+          badge.style.display = "none";
+        }
+      }
+
+      window.resetarApp = function() {
+        if (confirm("Deseja resetar o cache do app para o estado inicial?")) {
+          localStorage.removeItem("anki_ia_v23_state");
+          location.reload();
+        }
+      };
+
+      // ==========================================
+      // NAVEGAÇÃO ENTRE ABAS
+      // ==========================================
+      window.mudarAba = function(aba) {
+        var abas = ["dashboard", "classroom", "anki-play", "words", "metrics-detail"];
+        for (var i = 0; i < abas.length; i++) {
+          var t = abas[i];
+          var sec = document.getElementById("tab-" + t);
+          var nav = document.getElementById("nav-" + t);
+          if (sec) sec.classList.remove("active");
+          if (nav) nav.classList.remove("active");
+        }
+        var targetSec = document.getElementById("tab-" + aba);
+        var targetNav = document.getElementById("nav-" + aba);
+        if (targetSec) targetSec.classList.add("active");
+        if (targetNav) targetNav.classList.add("active");
+
+        if (aba === "classroom") renderizarChat();
+        if (aba === "anki-play") window.iniciarAnki(false);
+        if (aba === "words") renderizarBaralho();
+        if (aba === "dashboard" || aba === "metrics-detail") renderizarMetricas();
+      };
+
+      // ==========================================
+      // CONFIGURAÇÕES E MODAIS
+      // ==========================================
+      window.abrirConfig = function() {
+        document.getElementById("api-key-input").value = appState.apiKey || CHAVE_PADRAO_USUARIO;
+        document.getElementById("alarm-time-input").value = appState.alarmTime || "23:00";
+        document.getElementById("settings-modal").classList.add("open");
+      };
+
+      window.fecharConfig = function() {
+        document.getElementById("settings-modal").classList.remove("open");
+      };
+
+      window.salvarConfig = function() {
+        appState.apiKey = document.getElementById("api-key-input").value.trim() || CHAVE_PADRAO_USUARIO;
+        appState.alarmTime = document.getElementById("alarm-time-input").value || "23:00";
+        if ("Notification" in window && Notification.permission !== "granted") {
+          try { Notification.requestPermission(); } catch (e) {}
+        }
+        salvarEstado();
+        window.fecharConfig();
+        alert("✅ Configurações salvas!");
+      };
+
+      window.abrirModalCard = function() {
+        document.getElementById("new-card-modal").classList.add("open");
+      };
+
+      window.fecharModalCard = function() {
+        document.getElementById("new-card-modal").classList.remove("open");
+      };
+
+      window.salvarNovoCard = function() {
+        var w = document.getElementById("nc-word").value.trim();
+        var t = document.getElementById("nc-trans").value.trim();
+        if (!w || !t) {
+          alert("Preencha pelo menos a Palavra em inglês e o Significado!");
+          return;
+        }
+        var context = document.getElementById("nc-context").value.trim() || ("Qual o significado de '" + w + "'?");
+        var pron = document.getElementById("nc-pron").value.trim();
+        var ex = document.getElementById("nc-ex").value.trim();
+
+        appState.words.push({
+          id: "c_" + Date.now(),
+          w: w, context: context, t: t, pron: pron, ex: ex,
+          lvl: 1, reps: 0, interval: 0, ease: 2.5,
+          dueDate: Date.now(), state: "new", next: "Agora"
+        });
+
+        document.getElementById("nc-word").value = "";
+        document.getElementById("nc-context").value = "";
+        document.getElementById("nc-trans").value = "";
+        document.getElementById("nc-pron").value = "";
+        document.getElementById("nc-ex").value = "";
+        window.fecharModalCard();
+        salvarEstado();
+      };
+
+      // ==========================================
+      // MODO ANKI OFICIAL (SM-2)
+      // ==========================================
+      var filaAnki = [];
+      var cardAtual = null;
+      var mostrandoVerso = false;
+      var modoTreinoLivre = false;
+
+      function obterCartoesPendentes(todos) {
+        if (todos) return appState.words.slice();
+        var agora = Date.now();
+        return appState.words.filter(function(c) {
+          return (c.dueDate || 0) <= agora;
+        });
+      }
+
+      function atualizarContadoresAnki() {
+        var lista = obterCartoesPendentes(modoTreinoLivre);
+        var novos = lista.filter(function(c) { return c.state === "new" || !c.reps; }).length;
+        var aprend = lista.filter(function(c) { return c.state === "learning"; }).length;
+        var rev = lista.filter(function(c) { return c.state === "review" && c.reps > 0; }).length;
+        document.getElementById("anki-count-new").innerText = novos;
+        document.getElementById("anki-count-learn").innerText = aprend;
+        document.getElementById("anki-count-rev").innerText = rev;
+      }
+
+      window.iniciarAnki = function(forcarTodos) {
+        modoTreinoLivre = !!forcarTodos;
+        filaAnki = obterCartoesPendentes(modoTreinoLivre);
+        atualizarContadoresAnki();
+        proximoCardAnki();
+      };
+
+      function proximoCardAnki() {
+        atualizarContadoresAnki();
+        var area = document.getElementById("anki-play-area");
+        var controles = document.getElementById("anki-controls-area");
+
+        if (filaAnki.length === 0) {
+          cardAtual = null;
+          area.innerHTML = [
+            '<div style="margin:auto;text-align:center;padding:24px 10px;">',
+              '<div style="font-size:42px;margin-bottom:10px;">🎉</div>',
+              '<h3 style="font-size:17px;font-weight:800;margin-bottom:6px;">Fila do Anki Concluída!</h3>',
+              '<p style="font-size:12px;color:#94a3b8;margin-bottom:16px;">Você revisou todos os cartões pendentes para agora.</p>',
+              '<button type="button" onclick="window.iniciarAnki(true)" style="background:#4f46e5;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:700;">⚡ Treinar Todo o Baralho (' + appState.words.length + ' cards)</button>',
+            '</div>'
+          ].join("");
+          controles.innerHTML = "";
+          return;
+        }
+
+        cardAtual = filaAnki[0];
+        mostrandoVerso = false;
+        desenharCardAnki();
+      }
+
+      window.ouvirPalavra = function(texto) {
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+          var u = new SpeechSynthesisUtterance(texto);
+          u.lang = "en-US";
+          u.rate = 0.9;
+          window.speechSynthesis.speak(u);
+        }
+      };
+
+      function calcularTextoIntervalo(card, nota) {
+        var ivl = card.interval || 0;
+        var ease = card.ease || 2.5;
+        if (nota === 1) return "< 10m";
+        if (ivl === 0) {
+          if (nota === 2) return "1d";
+          if (nota === 3) return "3d";
+          if (nota === 4) return "7d";
+        }
+        if (nota === 2) return Math.max(1, Math.round(ivl * 1.2)) + "d";
+        if (nota === 3) return Math.max(2, Math.round(ivl * ease)) + "d";
+        if (nota === 4) return Math.max(4, Math.round(ivl * ease * 1.3)) + "d";
+      }
+
+      function desenharCardAnki() {
+        var area = document.getElementById("anki-play-area");
+        var controles = document.getElementById("anki-controls-area");
+        var palavraSegura = (cardAtual.w || "").replace(/'/g, "");
+
+        var versoHTML = "";
+        if (mostrandoVerso) {
+          versoHTML = [
+            '<hr class="anki-divider">',
+            '<div style="display:flex;flex-direction:column;gap:10px;">',
+              '<div>',
+                '<span class="anki-label" style="color:#34d399;">Significado (PT-BR)</span>',
+                '<div style="font-size:16px;font-weight:700;color:#fff;">' + cardAtual.t + '</div>',
+              '</div>',
+              cardAtual.pron ? '<div><span class="anki-label" style="color:#818cf8;">Pronúncia</span><div style="font-size:13px;color:#cbd5e1;">' + cardAtual.pron + '</div></div>' : '',
+              cardAtual.ex ? '<div><span class="anki-label" style="color:#fbbf24;">Exemplo Natural</span><div style="font-size:12.5px;color:#e2e8f0;background:#0f172a;padding:10px;border-radius:10px;border:1px solid #334155;">' + cardAtual.ex + '</div></div>' : '',
+            '</div>'
+          ].join("");
+        } else {
+          versoHTML = '<div style="text-align:center;padding:28px 0;font-size:12px;color:#64748b;">Tente lembrar o significado antes de virar o cartão 👇</div>';
+        }
+
+        area.innerHTML = [
+          '<div>',
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
+              '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:#334155;color:#cbd5e1;">CARD ANKI</span>',
+              '<button type="button" onclick="window.ouvirPalavra(\'' + palavraSegura + '\')" style="background:#334155;color:#c7d2fe;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;">🔊 Ouvir Pronúncia</button>',
+            '</div>',
+            '<div class="anki-word">' + cardAtual.w + '</div>',
+            '<div class="anki-context">' + (cardAtual.context || '') + '</div>',
+            versoHTML,
+          '</div>'
+        ].join("");
+
+        if (!mostrandoVerso) {
+          controles.innerHTML = '<button type="button" class="btn-reveal" onclick="window.virarCardAnki()">Mostrar Resposta</button>';
+        } else {
+          controles.innerHTML = [
+            '<div class="grade-grid">',
+              '<button type="button" class="btn-grade g-again" onclick="window.avaliarCardAnki(1)"><span>' + calcularTextoIntervalo(cardAtual, 1) + '</span>Errei</button>',
+              '<button type="button" class="btn-grade g-hard" onclick="window.avaliarCardAnki(2)"><span>' + calcularTextoIntervalo(cardAtual, 2) + '</span>Difícil</button>',
+              '<button type="button" class="btn-grade g-good" onclick="window.avaliarCardAnki(3)"><span>' + calcularTextoIntervalo(cardAtual, 3) + '</span>Bom</button>',
+              '<button type="button" class="btn-grade g-easy" onclick="window.avaliarCardAnki(4)"><span>' + calcularTextoIntervalo(cardAtual, 4) + '</span>Fácil</button>',
+            '</div>'
+          ].join("");
+        }
+      }
+
+      window.virarCardAnki = function() {
+        mostrandoVerso = true;
+        window.ouvirPalavra(cardAtual.w);
+        desenharCardAnki();
+      };
+
+      window.avaliarCardAnki = function(nota) {
+        var idx = -1;
+        for (var i = 0; i < appState.words.length; i++) {
+          if (appState.words[i].id === cardAtual.id || appState.words[i].w === cardAtual.w) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx === -1) return;
+        var c = appState.words[idx];
+
+        appState.reviewsDone = (appState.reviewsDone || 0) + 1;
+        if (nota >= 2) appState.reviewsCorrect = (appState.reviewsCorrect || 0) + 1;
+        appState.retencao = Math.round((appState.reviewsCorrect / appState.reviewsDone) * 100);
+
+        var ivl = c.interval || 0;
+        var ease = c.ease || 2.5;
+
+        if (nota === 1) {
+          c.reps = 0;
+          c.interval = 0;
+          c.ease = Math.max(1.3, ease - 0.2);
+          c.state = "learning";
+          c.lvl = 1;
+          c.dueDate = Date.now() + (10 * 60 * 1000);
+          c.next = "< 10m";
+          filaAnki.shift();
+          filaAnki.push(c);
+        } else {
+          if (ivl === 0) {
+            ivl = (nota === 2) ? 1 : (nota === 3) ? 3 : 7;
+          } else {
+            if (nota === 2) { ivl = Math.max(1, Math.round(ivl * 1.2)); ease = Math.max(1.3, ease - 0.15); }
+            if (nota === 3) { ivl = Math.max(2, Math.round(ivl * ease)); }
+            if (nota === 4) { ivl = Math.max(4, Math.round(ivl * ease * 1.3)); ease += 0.15; }
+          }
+          c.reps = (c.reps || 0) + 1;
+          c.interval = ivl;
+          c.ease = ease;
+          c.state = "review";
+          c.dueDate = Date.now() + (ivl * DAY_MS);
+          c.next = ivl + "d";
+          c.lvl = (ivl >= 7) ? 3 : 2;
+          filaAnki.shift();
+        }
+
+        salvarEstado();
+        proximoCardAnki();
+      };
+
+      // ==========================================
+      // BARALHO E MÉTRICAS
+      // ==========================================
+      function renderizarBaralho() {
+        var box = document.getElementById("word-list-container");
+        if (!box) return;
+        if (appState.words.length === 0) {
+          box.innerHTML = '<div class="card-box" style="text-align:center;color:#94a3b8;font-size:12px;">Nenhum cartão ainda.</div>';
+          return;
+        }
+        box.innerHTML = appState.words.map(function(w) {
+          var corNivel = w.lvl === 3 ? "#34d399" : (w.lvl === 2 ? "#fbbf24" : "#60a5fa");
+          var txtNivel = w.lvl === 3 ? "Dominado" : (w.lvl === 2 ? "Recuperação" : "Aprendendo");
+          var pSegura = (w.w || "").replace(/'/g, "");
+          return [
+            '<div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">',
+              '<div>',
+                '<div style="display:flex;align-items:center;gap:8px;">',
+                  '<b style="font-size:15px;color:#fff;">' + w.w + '</b>',
+                  '<button type="button" onclick="window.ouvirPalavra(\'' + pSegura + '\')" style="background:none;color:#818cf8;font-size:14px;">🔊</button>',
+                '</div>',
+                '<div style="font-size:12px;color:#34d399;margin-top:2px;">' + w.t + '</div>',
+              '</div>',
+              '<div style="text-align:right;">',
+                '<span style="font-size:10px;font-weight:700;color:' + corNivel + ';">' + txtNivel + '</span>',
+                '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">Próx: <b>' + (w.next || "Agora") + '</b></div>',
+              '</div>',
+            '</div>'
+          ].join("");
+        }).join("");
+      }
+
+      function renderizarMetricas() {
+        document.getElementById("metric-lessons").innerText = appState.aula;
+        var m2 = document.getElementById("metric-lessons-2");
+        if (m2) m2.innerText = appState.aula;
+
+        document.getElementById("metric-retention").innerText = appState.retencao + "%";
+        document.getElementById("metric-total-words").innerText = appState.words.length + " cards";
+
+        var total = Math.max(appState.words.length, 1);
+        var rec = appState.words.filter(function(w) { return w.lvl === 1; }).length;
+        var ret = appState.words.filter(function(w) { return w.lvl === 2; }).length;
+        var act = appState.words.filter(function(w) { return w.lvl === 3; }).length;
+
+        document.getElementById("lvl-rec-count").innerText = rec;
+        document.getElementById("lvl-ret-count").innerText = ret;
+        document.getElementById("lvl-act-count").innerText = act;
+        document.getElementById("lvl-rec-bar").style.width = ((rec / total) * 100) + "%";
+        document.getElementById("lvl-ret-bar").style.width = ((ret / total) * 100) + "%";
+        document.getElementById("lvl-act-bar").style.width = ((act / total) * 100) + "%";
+      }
+
+      // ==========================================
+      // CHAT DA SALA DE AULA (GEMINI API)
+      // ==========================================
+      function formatarTextoChat(txt) {
+        var limpo = (txt || "").replace(/ANKI_DATA:\s*\{.*\}/g, "").trim();
+        return limpo
+          .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+          .replace(/\*(.*?)\*/g, "<i>$1</i>")
+          .replace(/\n/g, "<br>");
+      }
+
+      function renderizarChat() {
+        var box = document.getElementById("chat-messages");
+        if (!box) return;
+        box.innerHTML = appState.chatHistory.map(function(m) {
+          var cls = m.role === "user" ? "user" : "model";
+          return '<div class="msg-row ' + cls + '"><div class="msg-bubble">' + formatarTextoChat(m.text) + '</div></div>';
+        }).join("");
+        box.scrollTop = box.scrollHeight;
+      }
+
+      window.comandoRapido = function(cmd) {
+        window.mudarAba("classroom");
+        window.enviarMensagem(cmd);
+      };
+
+      async function chamarGeminiAPI(key, payload) {
+        var url1 = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(key);
+        var r1 = await fetch(url1, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        var d1 = await r1.json();
+        if (!d1.error) return d1;
+
+        var url2 = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+        var r2 = await fetch(url2, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + key
+          },
+          body: JSON.stringify(payload)
+        });
+        var d2 = await r2.json();
+        if (!d2.error) return d2;
+
+        return d1;
+      }
+
+      window.enviarMensagem = async function(textoCustom) {
+        var input = document.getElementById("chat-input");
+        var texto = textoCustom || input.value.trim();
+        if (!texto) return;
+        input.value = "";
+
+        appState.chatHistory.push({ role: "user", text: texto });
+        renderizarChat();
+        salvarEstado();
+
+        var keyAtiva = (appState.apiKey || CHAVE_PADRAO_USUARIO).trim();
+        var btn = document.getElementById("send-btn");
+        if(btn) btn.innerText = "...";
+
+        try {
+          var contents = appState.chatHistory.map(function(m) {
+            return {
+              role: m.role === "user" ? "user" : "model",
+              parts: [{ text: m.text }]
+            };
+          });
+
+          var payload = {
+            system_instruction: {
+              parts: [{
+                text: SYSTEM_PROMPT + "\nEstado atual do aluno: " + JSON.stringify({
+                  aula: appState.aula,
+                  nivel: appState.nivel,
+                  palavrasNoAnki: appState.words.map(function(w) { return w.w; })
+                })
+              }]
+            },
+            contents: contents
+          };
+
+          var data = await chamarGeminiAPI(keyAtiva, payload);
+
+          if (data.error) {
+            appState.chatHistory.push({
+              role: "model",
+              text: "❌ **Erro na API:** " + (data.error.message || "Verifique sua chave em ⚙️.")
+            });
+          } else {
+            var reply = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0].text) || "Sem resposta.";
+            appState.chatHistory.push({ role: "model", text: reply });
+            extrairDadosAnki(reply);
+          }
+        } catch (err) {
+          appState.chatHistory.push({
+            role: "model",
+            text: "⚠️ **Falha de rede:** Verifique sua conexão com a internet."
+          });
+        } finally {
+          if(btn) btn.innerText = "Enviar";
+          salvarEstado();
+          renderizarChat();
+        }
+      };
+
+      function extrairDadosAnki(texto) {
+        var match = texto.match(/ANKI_DATA:\s*(\{.*\})/);
+        if (match && match[1]) {
+          try {
+            var dados = JSON.parse(match[1]);
+            aplicarDados(dados);
+          } catch (e) {}
+        }
+      }
+
+      function aplicarDados(dados) {
+        if (dados.aula !== undefined) appState.aula = dados.aula;
+        if (dados.nivel) appState.nivel = dados.nivel;
+        if (Array.isArray(dados.words)) {
+          dados.words.forEach(function(nw) {
+            var existe = appState.words.some(function(w) {
+              return w.w.toLowerCase() === (nw.w || "").toLowerCase();
+            });
+            if (!existe && nw.w) {
+              appState.words.push({
+                id: "c_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+                w: nw.w,
+                context: nw.context || ("Recupere o significado de '" + nw.w + "'"),
+                t: nw.t || "",
+                pron: nw.pron || "",
+                ex: nw.ex || "",
+                lvl: nw.lvl || 1,
+                reps: 0, interval: 0, ease: 2.5,
+                dueDate: Date.now(), state: "new", next: "Agora"
+              });
+            }
+          });
+        }
+        salvarEstado();
+      }
+
+      window.exportarBackup = function() {
+        document.getElementById("continuity-input").value = JSON.stringify(appState);
+        alert("Backup gerado! Copie o código na caixa de texto.");
+      };
+
+      window.importarBackup = function() {
+        var raw = document.getElementById("continuity-input").value.trim();
+        if (!raw) return alert("Cole o código de backup primeiro!");
+        try {
+          var parsed = JSON.parse(raw);
+          appState = parsed;
+          salvarEstado();
+          renderizarChat();
+          alert("✅ Progresso restaurado com sucesso!");
+        } catch (e) {
+          alert("Código inválido.");
+        }
+      };
+
+      // Inicialização imediata
+      atualizarTopo();
+      renderizarChat();
+      renderizarBaralho();
+      renderizarMetricas();
+    })();
+  </script>
+</body>
+</html>
