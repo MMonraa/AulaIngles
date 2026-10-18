@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0f172a">
-  <title>Anki IA - Professor Eterno v2.3</title>
+  <title>Anki IA - Professor Eterno v2.5</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -215,7 +215,6 @@
     <!-- ABA 0: HOME / DASHBOARD DIDÁTICO -->
     <section id="tab-dashboard" class="tab-section active">
       <div class="pad-area">
-        <!-- Hero Resumo -->
         <div class="hero-card">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div>
@@ -236,7 +235,6 @@
           </div>
         </div>
 
-        <!-- MENU RÁPIDO COM OS 4 BOTÕES SOLICITADOS -->
         <div>
           <h2 style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;letter-spacing:0.05em;">Acesso Rápido</h2>
           <div class="menu-grid">
@@ -271,7 +269,6 @@
           </div>
         </div>
 
-        <!-- Estágios de Memória Resumo -->
         <div class="card-box" style="display:flex;flex-direction:column;gap:8px;">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Progresso do Vocabulário</div>
           <div>
@@ -318,7 +315,7 @@
       </div>
     </section>
 
-    <!-- ABA 2: USAR ANKI (MODO ANKI OFICIAL) -->
+    <!-- ABA 2: USAR ANKI -->
     <section id="tab-anki-play" class="tab-section">
       <div class="pad-area">
         <div class="card-box anki-counts">
@@ -344,7 +341,7 @@
       </div>
     </section>
 
-    <!-- ABA 3: BARALHO SALVO -->
+    <!-- ABA 3: BARALHO -->
     <section id="tab-words" class="tab-section">
       <div class="pad-area">
         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -427,7 +424,8 @@
       </div>
       <div>
         <label style="font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px;">Chave da API do Gemini:</label>
-        <input id="api-key-input" class="form-input" type="text" value="AQ.Ab8RN6IIuOuSmkAzD16ndCemzCMTw0BFPf6kgrnWdFmKs-EFLQ">
+        <input id="api-key-input" class="form-input" type="password" placeholder="Cole sua chave aqui...">
+        <p style="font-size:11px;color:#94a3b8;margin-top:4px;">Salva com segurança apenas no armazenamento local do seu dispositivo.</p>
       </div>
       <div>
         <label style="font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px;">Horário do Despertador Diário:</label>
@@ -435,9 +433,6 @@
       </div>
       <button type="button" onclick="window.salvarConfig()" style="background:#4f46e5;color:#fff;padding:12px;border-radius:12px;font-weight:700;font-size:14px;">
         Salvar Configurações
-      </button>
-      <button type="button" onclick="window.resetarApp()" style="background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.4);color:#fda4af;padding:10px;border-radius:12px;font-weight:600;font-size:12px;">
-        🔄 Resetar Cache do App
       </button>
     </div>
   </div>
@@ -462,7 +457,6 @@
 
   <script>
     (function() {
-      var CHAVE_PADRAO_USUARIO = "AQ.Ab8RN6IIuOuSmkAzD16ndCemzCMTw0BFPf6kgrnWdFmKs-EFLQ";
       var DAY_MS = 86400000;
 
       var defaultCards = [
@@ -503,21 +497,20 @@
         reviewsDone: 0,
         reviewsCorrect: 0,
         alarmTime: "23:00",
-        apiKey: CHAVE_PADRAO_USUARIO,
+        apiKey: "",
         words: defaultCards,
         chatHistory: [
           {
             role: "model",
-            text: "Olá! Eu sou o seu **Professor Eterno de Vocabulário de Inglês**.\n\nVamos iniciar a nossa jornada. Para começarmos, responda à primeira pergunta da nossa **Avaliação Inicial de Nivelamento**:\n\n*\"We need to **postpone** the meeting because the manager couldn't **figure out** the budget issue.\"*\n\nSem pesquisar: O que significam **postpone** e **figure out**?"
+            text: "Olá! Eu sou o seu **Professor Eterno de Vocabulário de Inglês**.\n\nPara conversarmos aqui na Sala de Aula, toque na engrenagem (⚙️) no topo direito, cole sua chave do Gemini e clique em Salvar.\n\nEnquanto isso, responda à primeira pergunta da nossa **Avaliação Inicial de Nivelamento**:\n\n*\"We need to **postpone** the meeting because the manager couldn't **figure out** the budget issue.\"*\n\nSem pesquisar: O que significam **postpone** e **figure out**?"
           }
         ]
       };
 
       var appState;
       try {
-        var saved = localStorage.getItem("anki_ia_v23_state");
+        var saved = localStorage.getItem("anki_ia_v25_state");
         appState = saved ? JSON.parse(saved) : defaultState;
-        if (!appState.apiKey) appState.apiKey = CHAVE_PADRAO_USUARIO;
         if (!appState.words || !Array.isArray(appState.words)) appState.words = defaultCards;
         if (!appState.chatHistory || !Array.isArray(appState.chatHistory)) appState.chatHistory = defaultState.chatHistory;
       } catch (e) {
@@ -537,7 +530,7 @@
 
       function salvarEstado() {
         try {
-          localStorage.setItem("anki_ia_v23_state", JSON.stringify(appState));
+          localStorage.setItem("anki_ia_v25_state", JSON.stringify(appState));
         } catch (e) {}
         atualizarTopo();
         renderizarBaralho();
@@ -557,16 +550,6 @@
         }
       }
 
-      window.resetarApp = function() {
-        if (confirm("Deseja resetar o cache do app para o estado inicial?")) {
-          localStorage.removeItem("anki_ia_v23_state");
-          location.reload();
-        }
-      };
-
-      // ==========================================
-      // NAVEGAÇÃO ENTRE ABAS
-      // ==========================================
       window.mudarAba = function(aba) {
         var abas = ["dashboard", "classroom", "anki-play", "words", "metrics-detail"];
         for (var i = 0; i < abas.length; i++) {
@@ -587,11 +570,8 @@
         if (aba === "dashboard" || aba === "metrics-detail") renderizarMetricas();
       };
 
-      // ==========================================
-      // CONFIGURAÇÕES E MODAIS
-      // ==========================================
       window.abrirConfig = function() {
-        document.getElementById("api-key-input").value = appState.apiKey || CHAVE_PADRAO_USUARIO;
+        document.getElementById("api-key-input").value = appState.apiKey || "";
         document.getElementById("alarm-time-input").value = appState.alarmTime || "23:00";
         document.getElementById("settings-modal").classList.add("open");
       };
@@ -601,14 +581,14 @@
       };
 
       window.salvarConfig = function() {
-        appState.apiKey = document.getElementById("api-key-input").value.trim() || CHAVE_PADRAO_USUARIO;
+        appState.apiKey = document.getElementById("api-key-input").value.trim();
         appState.alarmTime = document.getElementById("alarm-time-input").value || "23:00";
         if ("Notification" in window && Notification.permission !== "granted") {
           try { Notification.requestPermission(); } catch (e) {}
         }
         salvarEstado();
         window.fecharConfig();
-        alert("✅ Configurações salvas!");
+        alert("✅ Configurações salvas com segurança no seu dispositivo!");
       };
 
       window.abrirModalCard = function() {
@@ -646,9 +626,6 @@
         salvarEstado();
       };
 
-      // ==========================================
-      // MODO ANKI OFICIAL (SM-2)
-      // ==========================================
       var filaAnki = [];
       var cardAtual = null;
       var mostrandoVerso = false;
@@ -831,9 +808,6 @@
         proximoCardAnki();
       };
 
-      // ==========================================
-      // BARALHO E MÉTRICAS
-      // ==========================================
       function renderizarBaralho() {
         var box = document.getElementById("word-list-container");
         if (!box) return;
@@ -884,9 +858,6 @@
         document.getElementById("lvl-act-bar").style.width = ((act / total) * 100) + "%";
       }
 
-      // ==========================================
-      // CHAT DA SALA DE AULA (GEMINI API)
-      // ==========================================
       function formatarTextoChat(txt) {
         var limpo = (txt || "").replace(/ANKI_DATA:\s*\{.*\}/g, "").trim();
         return limpo
@@ -945,7 +916,17 @@
         renderizarChat();
         salvarEstado();
 
-        var keyAtiva = (appState.apiKey || CHAVE_PADRAO_USUARIO).trim();
+        var keyAtiva = (appState.apiKey || "").trim();
+        if (!keyAtiva) {
+          appState.chatHistory.push({
+            role: "model",
+            text: "⚠️ **Chave de API não configurada!**\n\nToque no botão **⚙️** no topo direito, cole sua chave do Gemini e clique em Salvar."
+          });
+          renderizarChat();
+          window.abrirConfig();
+          return;
+        }
+
         var btn = document.getElementById("send-btn");
         if(btn) btn.innerText = "...";
 
@@ -1049,7 +1030,6 @@
         }
       };
 
-      // Inicialização imediata
       atualizarTopo();
       renderizarChat();
       renderizarBaralho();
